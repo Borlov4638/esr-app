@@ -1,91 +1,23 @@
 
-import parselmouth
 import glob
 import os
 import numpy
+from pattern import Pattern
+from percents import Percents
+from pitchDetection import PitchDetect
 
-alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZбвгдёжзийклмнптуфцчшщъыьэюяБГДЁЖЗИЙЛПУФЦЧШЩЪЫЬЭЮЯ"
-
-class Pattern:
-    def __init__(self, percent, n):
-        self.percent = percent
-        self.segment = n
-
-    def split(self):
-        sort_array = sorted(self.percent)
-        step = len(sort_array) // self.segment
-        split_array = [sort_array[d:d + step] for d in range(0, len(sort_array), step)]
-        return split_array
-
-
-    def pattern(self, ranges, pc):          
-
-        pattern = ''
-        
-        for i in pc:
-            for j in ranges:
-                if i>=j[1] and i<j[2]:
-                    pattern+=(j[0]+' ')
-        return pattern
-
-
-class Percents:
-    def __init__(self, step, array_of_freq):
-        self.step = step
-        self.array_of_freq = array_of_freq
-
-    def get_percents(self):
-        percents = []
-        split_array = [self.array_of_freq[d:d + self.step] for d in range(0, len(self.array_of_freq), self.step)]
-        for i in range(len(split_array)):
-            maximum = max(split_array[i])
-            minimum = self.minim_non_zero(split_array[i])
-            percent = ((maximum - minimum) / minimum) * 100
-            if percent != 0:
-                percents.append(percent)
-        return percents
-
-    def minim_non_zero(self, list):
-        minim = max(list)
-        for i in list:
-            if minim > i and i >= 1:
-                minim = i
-        if minim == 0:
-            minim = 1
-        return minim
-
-def falphabet():                         #???
-    # split_array = self.split()
+#По своей сути не является алфавитом. Эта функция возвращает массив чисел от 0 до 100
+#А сам массив представляет собой набор уровней, которым в последствии будут присвоены границы
+def falphabet():                         
     alph = []
     for i in range (0, 100):
-    # for i in range(0, len(split_array)):
         alph.append(str(i))
     return alph
 
-
-def singlefileTexter(folder_path, output_file ):
-
-    # folder_path = "path/to/folder"  # указываем путь к папке с файлами
-    # output_file = "output.txt"  # указываем имя файла, в котором будут записаны данные
-
-    with open(output_file, "w") as f_out:
-        for file_name in os.listdir(folder_path):
-            if file_name.endswith(".txt"):  # выбираем только текстовые файлы
-                with open(os.path.join(folder_path, file_name), "r") as f_in:
-                    f_out.write(f_in.read())  # записываем содержимое файла в выходной файл
-
-class pitch_detect:
-    def __init__(self, path):
-        self.sound = parselmouth.Sound(path)
-
-    def freq_array(self, time, floor, ceiling):
-        p = self.sound.to_pitch(time, floor, ceiling)
-        parr = p.selected_array['frequency']
-        parr[parr == 0] = 0
-        return parr
-
 alphabet = falphabet()
 
+#TODO вынести в отдельный конфиг файл
+#=========================================================
 i_path = ''
 o_path = ''
 g_path = ''
@@ -120,9 +52,6 @@ if os.path.isfile('config.txt'):
     conf.close()
 
 
-
-
-
 if i_path == '':
     i_path = input('Путь к директории входных файлов:') + "\*.wav"
 if o_path == '':
@@ -140,34 +69,24 @@ if step_per == 0:
 if step_pat == 0:
     step_pat = int(input('Шаг для паттернов:'))
     
-# print(i_path)
-# print(o_path)
-# print(g_path)
-# print(time)
-# print(floor)
-# print(ceiling)
-# print(step_per)
-# print(step_pat)
+
+#===============================================================
 
 files = glob.glob(i_path)
 globl = glob.glob(g_path)
 array = []
 
 for i in globl:
-        pitch = pitch_detect(i).freq_array(time, floor, ceiling)
+        pitch = PitchDetect(i).freq_array(time, floor, ceiling)
         temp = pitch.tolist()
         array += temp
 
 proc = Percents(step_per, array).get_percents()
-#print(proc)
 proc = [i for i in proc if i >= 0]
-#print(proc)
 
 proc.sort()
 print(proc)
 
-# print(len(proc))
-# print(proc[len(proc)/2])
 for j in range(5,101):
     step_pat = j
     print(str(j) + '++++++++++++++++++++++++++++++++++++++++++')
@@ -203,7 +122,7 @@ for j in range(5,101):
 
     for i in files:
         file = os.path.basename(i)
-        pitch = pitch_detect(i).freq_array(time, floor, ceiling)
+        pitch = PitchDetect(i).freq_array(time, floor, ceiling)
         pitch = pitch.tolist()
         per = Percents(step_per, pitch).get_percents()
         per = [i for i in per if i >= 0]
