@@ -11,28 +11,27 @@ from config import Config
 #А сам массив представляет собой набор уровней, которым в последствии будут присвоены границы
 def falphabet():                         
     alph = []
-    for i in range (0, 100):
-        alph.append(str(i))
+    for number in range (0, 100):
+        alph.append(str(number))
     return alph
 
 alphabet = falphabet()
 
 config = Config()
 
-inputFiles = glob.glob(config.get_input_path)
-generalFiles = glob.glob(config.get_general_path)
-array = []
+inputFiles = glob.glob(config.get_input_path())
+generalFiles = glob.glob(config.get_general_path())
+pitch_array = []                                            #Массив частот всех аудиофайлов датасета
 
 for file in generalFiles:
-        pitch = PitchDetect(file).freq_array(config.get_time, config.get_floor, config.get_ceiling)
-        temp = pitch.tolist()
-        array += temp
+        pitch = PitchDetect(file).freq_array(config.get_time(), config.get_floor(), config.get_ceiling())
+        pitch_array += pitch.tolist()
 
-proc = Percents(config.get_step_pat, array).get_percents()
-proc = [i for i in proc if i >= 0]
+percentage_arr = Percents(config.get_step_pat(), pitch_array).get_percents() #Рассчет массива процентов, где каждый элемент массива - отдельный аудиофайл
+percentage_arr = [file_data_in_perc for file_data_in_perc in percentage_arr if file_data_in_perc >= 0]
 
-proc.sort()
-print(proc)
+percentage_arr.sort()
+print(percentage_arr)
 
 for j in range(5,101):
     step_pat = j
@@ -41,22 +40,22 @@ for j in range(5,101):
     #------------------------------------------------------------------------------
     ranges = []
     cntr = 0
-    X = (int)(len(proc)/(step_pat-1))
-    for i in range(0,(len(proc)),X):
-        if (i+X)>len(proc)-1:
-            ranges.append((alphabet[cntr],proc[i],numpy.Inf))               #proc[len(proc)-1]+1
+    X = (int)(len(percentage_arr)/(step_pat-1))
+    for i in range(0,(len(percentage_arr)),X):
+        if (i+X)>len(percentage_arr)-1:
+            ranges.append((alphabet[cntr],percentage_arr[i],numpy.Inf))               #proc[len(proc)-1]+1
             print("================================================\n")
             print(ranges)
             break
         else:
             if i==0:
-                ranges.append((alphabet[cntr],0,proc[i+X]))
+                ranges.append((alphabet[cntr],0,percentage_arr[i+X]))
                 cntr+=1
                 print("================================================\n")
                 print(ranges)
 
             else:
-                ranges.append((alphabet[cntr],proc[i],proc[i+X]))
+                ranges.append((alphabet[cntr],percentage_arr[i],percentage_arr[i+X]))
                 cntr+=1
                 print("================================================\n")
                 print(ranges)
@@ -69,9 +68,9 @@ for j in range(5,101):
 
     for i in inputFiles:
         file = os.path.basename(i)
-        pitch = PitchDetect(i).freq_array(config.get_time, config.get_floor, config.get_ceiling)
+        pitch = PitchDetect(i).freq_array(config.get_time(), config.get_floor(), config.get_ceiling())
         pitch = pitch.tolist()
-        per = Percents(config.step_per, pitch).get_percents()
+        per = Percents(config.step_per(), pitch).get_percents()
         per = [i for i in per if i >= 0]
         pat = Pattern(per, step_pat).pattern(ranges, per)
         if not os.path.exists(config.o_path +"\P"+ str(j)):
