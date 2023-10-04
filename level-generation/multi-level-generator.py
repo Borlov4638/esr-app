@@ -5,6 +5,7 @@ import numpy
 from pattern import Pattern
 from percents import Percents
 from pitchDetection import PitchDetect
+from config import Config
 
 #По своей сути не является алфавитом. Эта функция возвращает массив чисел от 0 до 100
 #А сам массив представляет собой набор уровней, которым в последствии будут присвоены границы
@@ -16,72 +17,18 @@ def falphabet():
 
 alphabet = falphabet()
 
-#TODO вынести в отдельный конфиг файл
-#=========================================================
-i_path = ''
-o_path = ''
-g_path = ''
-time = 0.0
-floor = 0.0
-ceiling = 0.0
-step_per = 0
-step_pat = 0
+config = Config()
 
-
-if os.path.isfile('config.txt'):
-    conf = open('config.txt')
-    for string in conf:
-        # if string[0] == 'A':
-        #     alphabet = string[1:-1]
-        if string[0] == 'I':
-            i_path = string[1:-1] + "\*.wav"
-        elif string[0] == 'O':
-            o_path = string[1:-1]
-        elif string[0] == 'G':
-            g_path = string[1:-1] + "\*.wav"
-        elif string[0] == 't':
-            time = float(string[1:])
-        elif string[0] == 'F':
-            floor = float(string[1:])
-        elif string[0] == 'C':
-            ceiling = float(string[1:])
-        elif string[0] == '%':
-            step_per = int(string[1:])
-        elif string[0] == 'P':
-            step_pat = int(string[1:])
-    conf.close()
-
-
-if i_path == '':
-    i_path = input('Путь к директории входных файлов:') + "\*.wav"
-if o_path == '':
-    o_path = input('Путь сохранения паттернов:')
-if g_path == '':
-    g_path = input('Путь к директории всех файлов:') + "\*.wav"
-if time == 0.0:
-    time = float(input('Шаг для частот:'))
-if floor == 0.0:
-    floor = float(input('Нижняя граница ЧОТ:'))
-if ceiling == 0.0:
-    ceiling = float(input('Верхняя граница ЧОТ:'))
-if step_per == 0:    
-    step_per = int(input('Шаг для процентов:'))
-if step_pat == 0:
-    step_pat = int(input('Шаг для паттернов:'))
-    
-
-#===============================================================
-
-files = glob.glob(i_path)
-globl = glob.glob(g_path)
+inputFiles = glob.glob(config.get_input_path)
+generalFiles = glob.glob(config.get_general_path)
 array = []
 
-for i in globl:
-        pitch = PitchDetect(i).freq_array(time, floor, ceiling)
+for file in generalFiles:
+        pitch = PitchDetect(file).freq_array(config.get_time, config.get_floor, config.get_ceiling)
         temp = pitch.tolist()
         array += temp
 
-proc = Percents(step_per, array).get_percents()
+proc = Percents(config.get_step_pat, array).get_percents()
 proc = [i for i in proc if i >= 0]
 
 proc.sort()
@@ -120,22 +67,22 @@ for j in range(5,101):
 
 
 
-    for i in files:
+    for i in inputFiles:
         file = os.path.basename(i)
-        pitch = PitchDetect(i).freq_array(time, floor, ceiling)
+        pitch = PitchDetect(i).freq_array(config.get_time, config.get_floor, config.get_ceiling)
         pitch = pitch.tolist()
-        per = Percents(step_per, pitch).get_percents()
+        per = Percents(config.step_per, pitch).get_percents()
         per = [i for i in per if i >= 0]
         pat = Pattern(per, step_pat).pattern(ranges, per)
-        if not os.path.exists(o_path +"\P"+ str(j)):
-            os.mkdir(o_path +"\P"+ str(j))
-        o_temp = o_path +"\P"+ str(j) + "\Pattern---" + file + ".txt"
+        if not os.path.exists(config.o_path +"\P"+ str(j)):
+            os.mkdir(config.o_path +"\P"+ str(j))
+        o_temp = config.o_path +"\P"+ str(j) + "\Pattern---" + file + ".txt"
         f = open(o_temp, "a")
         f.write(str(pat))
         f.close()
         
-    folder_path = o_path +"\P"+ str(j)  # указываем путь к папке с файлами
-    output_file = o_path +"\P"+ str(j) + "\Output.txt"  # указываем имя файла, в котором будут записаны данные
+    folder_path = config.o_path +"\P"+ str(j)  # указываем путь к папке с файлами
+    output_file = config.o_path +"\P"+ str(j) + "\Output.txt"  # указываем имя файла, в котором будут записаны данные
 
     with open(output_file, "w") as out_file:
         for filename in os.listdir(folder_path):
