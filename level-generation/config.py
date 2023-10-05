@@ -5,14 +5,15 @@ env_var = load_dotenv(find_dotenv())
 
 class Config:
     def __init__(self):
-        self.i_path = os.environ.get('INPUT_FILES_DIRECTORY') or input('Путь к директории входных файлов:') + "\*.wav"
+        self.i_path = os.environ.get('INPUT_FILES_DIRECTORY') + "/*.wav" or input('Путь к директории входных файлов:') + "\*.wav"
         self.o_path = os.environ.get('OUTPUT_PATTERNS_DIRECTORY') or input('Путь сохранения паттернов:')
-        self.g_path = os.environ.get('ALL_FILES_DIRECTORY') or input('Путь к директории всех файлов:') + "\*.wav"
+        self.g_path = os.environ.get('ALL_FILES_DIRECTORY') + "/*.wav" or input('Путь к директории всех файлов:') + "\*.wav"
         self.time = float(os.environ.get('PITCH_TIME_STEP')) or float(input('Шаг для частот:'))
         self.floor = float(os.environ.get('FLOOR_F0')) or float(input('Нижняя граница ЧОТ:'))
         self.ceiling = float(os.environ.get('CEILING_F0')) or float(input('Верхняя граница ЧОТ:'))
         self.step_per = int(os.environ.get('PERCENTAGE_STEP')) or int(input('Шаг для процентов:'))
         self.step_pat = int(os.environ.get('PATTERN_STEP')) or int(input('Шаг для паттернов:'))
+
 
     def get_input_path(self):
         return self.i_path

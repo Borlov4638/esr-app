@@ -7,6 +7,7 @@ from percents import Percents
 from pitchDetection import PitchDetect
 from config import Config
 
+
 #По своей сути не является алфавитом. Эта функция возвращает массив чисел от 0 до 100
 #А сам массив представляет собой набор уровней, которым в последствии будут присвоены границы
 def falphabet():                         
@@ -16,7 +17,6 @@ def falphabet():
     return alph
 
 alphabet = falphabet()
-
 config = Config()
 
 inputFiles = glob.glob(config.get_input_path())
@@ -24,8 +24,8 @@ generalFiles = glob.glob(config.get_general_path())
 pitch_array = []                                            #Массив частот всех аудиофайлов датасета
 
 for file in generalFiles:
-        pitch = PitchDetect(file).freq_array(config.get_time(), config.get_floor(), config.get_ceiling())
-        pitch_array += pitch.tolist()
+        pitch = PitchDetect(file).getFreqArrayFromFile(config.get_time(), config.get_floor(), config.get_ceiling())
+        pitch_array += pitch.tolist() #разве можно вставлять частоты файлов просто подряд друг за другом? в таком случае будут и такие группы, куда входят конец одного файла и начало другого и тогда это нарушит картину
 
 percentage_arr = Percents(config.get_step_pat(), pitch_array).get_percents() #Рассчет массива процентов, где каждый элемент массива - отдельный аудиофайл
 percentage_arr = [file_data_in_perc for file_data_in_perc in percentage_arr if file_data_in_perc >= 0]
@@ -33,30 +33,30 @@ percentage_arr = [file_data_in_perc for file_data_in_perc in percentage_arr if f
 percentage_arr.sort()
 print(percentage_arr)
 
-for j in range(5,101):
-    step_pat = j
+for j in range(5,20):
+    level = j
     print(str(j) + '++++++++++++++++++++++++++++++++++++++++++')
 
     #------------------------------------------------------------------------------
     ranges = []
-    cntr = 0
-    X = (int)(len(percentage_arr)/(step_pat-1))
+    level_char = 0
+    X = (int)(len(percentage_arr)/(level-1))                #рассчет того, как много процентных значений будет в одном шаге цикла(в одном уровне)
     for i in range(0,(len(percentage_arr)),X):
-        if (i+X)>len(percentage_arr)-1:
-            ranges.append((alphabet[cntr],percentage_arr[i],numpy.Inf))               #proc[len(proc)-1]+1
+        if (i+X)>len(percentage_arr)-1:                                                         #условие для последнего уровня
+            ranges.append((alphabet[level_char],percentage_arr[i],numpy.Inf))               
             print("================================================\n")
             print(ranges)
             break
         else:
             if i==0:
-                ranges.append((alphabet[cntr],0,percentage_arr[i+X]))
-                cntr+=1
+                ranges.append((alphabet[level_char],0,percentage_arr[i+X]))                         #Условие для первого уровня
+                level_char+=1
                 print("================================================\n")
                 print(ranges)
 
             else:
-                ranges.append((alphabet[cntr],percentage_arr[i],percentage_arr[i+X]))
-                cntr+=1
+                ranges.append((alphabet[level_char],percentage_arr[i],percentage_arr[i+X]))         #условие для остальных уровней
+                level_char+=1
                 print("================================================\n")
                 print(ranges)
 
@@ -64,15 +64,13 @@ for j in range(5,101):
     #------------------------------------------------------------------------------
 
 
-
-
     for i in inputFiles:
         file = os.path.basename(i)
-        pitch = PitchDetect(i).freq_array(config.get_time(), config.get_floor(), config.get_ceiling())
+        pitch = PitchDetect(i).getFreqArrayFromFile(config.get_time(), config.get_floor(), config.get_ceiling())
         pitch = pitch.tolist()
         per = Percents(config.step_per(), pitch).get_percents()
         per = [i for i in per if i >= 0]
-        pat = Pattern(per, step_pat).pattern(ranges, per)
+        pat = Pattern(per, level).pattern(ranges, per)
         if not os.path.exists(config.o_path +"\P"+ str(j)):
             os.mkdir(config.o_path +"\P"+ str(j))
         o_temp = config.o_path +"\P"+ str(j) + "\Pattern---" + file + ".txt"
