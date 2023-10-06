@@ -6,17 +6,8 @@ from pattern import Pattern
 from percents import Percents
 from pitchDetection import PitchDetect
 from config import Config
+from ranges import Ranges
 
-
-#По своей сути не является алфавитом. Эта функция возвращает массив чисел от 0 до 100
-#А сам массив представляет собой набор уровней, которым в последствии будут присвоены границы
-def falphabet():                         
-    alph = []
-    for number in range (0, 100):
-        alph.append(str(number))
-    return alph
-
-alphabet = falphabet()
 config = Config()
 
 inputFiles = glob.glob(config.get_input_path())
@@ -33,53 +24,33 @@ percentage_arr = [file_data_in_perc for file_data_in_perc in percentage_arr if f
 percentage_arr.sort()
 print(percentage_arr)
 
-for j in range(5,20):
-    level = j
-    print(str(j) + '++++++++++++++++++++++++++++++++++++++++++')
+for level in range(5,21):
 
-    #------------------------------------------------------------------------------
-    ranges = []
-    level_char = 0
-    X = (int)(len(percentage_arr)/(level-1))                #рассчет того, как много процентных значений будет в одном шаге цикла(в одном уровне)
-    for i in range(0,(len(percentage_arr)),X):
-        if (i+X)>len(percentage_arr)-1:                                                         #условие для последнего уровня
-            ranges.append((alphabet[level_char],percentage_arr[i],numpy.Inf))               
-            print("================================================\n")
-            print(ranges)
-            break
-        else:
-            if i==0:
-                ranges.append((alphabet[level_char],0,percentage_arr[i+X]))                         #Условие для первого уровня
-                level_char+=1
-                print("================================================\n")
-                print(ranges)
+    print(str(level) + '++++++++++++++++++++++++++++++++++++++++++')
+    
 
-            else:
-                ranges.append((alphabet[level_char],percentage_arr[i],percentage_arr[i+X]))         #условие для остальных уровней
-                level_char+=1
-                print("================================================\n")
-                print(ranges)
-
-    # print(ranges)
-    #------------------------------------------------------------------------------
-
+    #TODO Решить проблему с модулем генерацией уровней, а именно с переменной X - идет рассчет слишком большого количества уровней
+    ranges = Ranges(percentage_arr).getRanges(level)
 
     for i in inputFiles:
-        file = os.path.basename(i)
+        fileName = os.path.basename(i)                                                                                  #Берет имя waf файла
         pitch = PitchDetect(i).getFreqArrayFromFile(config.get_time(), config.get_floor(), config.get_ceiling())
         pitch = pitch.tolist()
-        per = Percents(config.step_per(), pitch).get_percents()
+        per = Percents(config.get_step_pat(), pitch).get_percents()
         per = [i for i in per if i >= 0]
         pat = Pattern(per, level).pattern(ranges, per)
-        if not os.path.exists(config.o_path +"\P"+ str(j)):
-            os.mkdir(config.o_path +"\P"+ str(j))
-        o_temp = config.o_path +"\P"+ str(j) + "\Pattern---" + file + ".txt"
+        if not os.path.exists(config.get_output_path() +"/P"+ str(level)):
+            os.mkdir(config.get_output_path() +"/P"+ str(level))
+        o_temp = config.get_output_path() +"/P"+ str(level) + "/Pattern---" + fileName + ".txt"
         f = open(o_temp, "a")
         f.write(str(pat))
         f.close()
         
-    folder_path = config.o_path +"\P"+ str(j)  # указываем путь к папке с файлами
-    output_file = config.o_path +"\P"+ str(j) + "\Output.txt"  # указываем имя файла, в котором будут записаны данные
+
+    # Эта часть отвечает за то чтобы сгруппировать все получившиеся паттерны с данным значением уровня в один файл
+    
+    folder_path = config.get_output_path() +"/P"+ str(level)  # указываем путь к папке с файлами
+    output_file = config.get_output_path() +"/P"+ str(level) + "/Output.txt"  # указываем имя файла, в котором будут записаны данные
 
     with open(output_file, "w") as out_file:
         for filename in os.listdir(folder_path):
