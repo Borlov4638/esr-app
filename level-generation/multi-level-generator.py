@@ -15,8 +15,8 @@ generalFiles = glob.glob(config.get_general_path())
 pitch_array = []                                            #Массив частот всех аудиофайлов датасета
 
 for file in generalFiles:
-        pitch = PitchDetect(file).getFreqArrayFromFile(config.get_time(), config.get_floor(), config.get_ceiling())
-        pitch_array += pitch.tolist() #разве можно вставлять частоты файлов просто подряд друг за другом? в таком случае будут и такие группы, куда входят конец одного файла и начало другого и тогда это нарушит картину
+    pitch = PitchDetect(file).getFreqArrayFromFile(config.get_time(), config.get_floor(), config.get_ceiling())
+    pitch_array += pitch.tolist() #разве можно вставлять частоты файлов просто подряд друг за другом? в таком случае будут и такие группы, куда входят конец одного файла и начало другого и тогда это нарушит картину
 
 percentage_arr = Percents(config.get_step_pat(), pitch_array).get_percents() #Рассчет массива процентов, где каждый элемент массива - отдельный аудиофайл
 percentage_arr = [file_data_in_perc for file_data_in_perc in percentage_arr if file_data_in_perc >= 0]
@@ -29,21 +29,21 @@ for level in range(5,21):
     print(str(level) + '++++++++++++++++++++++++++++++++++++++++++')
     
 
-    #TODO Решить проблему с модулем генерацией уровней, а именно с переменной X - идет рассчет слишком большого количества уровней
+    #TODO Решить проблему с модулем генерации уровней, а именно с переменной X - идет рассчет слишком большого количества уровней
     ranges = Ranges(percentage_arr).getRanges(level)
 
-    for i in inputFiles:
-        fileName = os.path.basename(i)                                                                                  #Берет имя waf файла
-        pitch = PitchDetect(i).getFreqArrayFromFile(config.get_time(), config.get_floor(), config.get_ceiling())
-        pitch = pitch.tolist()
-        per = Percents(config.get_step_pat(), pitch).get_percents()
-        per = [i for i in per if i >= 0]
-        pat = Pattern(per, level).pattern(ranges, per)
+    for file in inputFiles:
+        fileName = os.path.basename(file)                                                                                  #Берет имя waf файла
+        pitch_array = PitchDetect(file).getFreqArrayFromFile(config.get_time(), config.get_floor(), config.get_ceiling())
+        pitch_array = pitch_array.tolist()
+        percent_array = Percents(config.get_step_pat(), pitch_array).get_percents()
+        percent_array = [percent for percent in percent_array if percent >= 0]
+        pattern = Pattern(percent_array, level).pattern(ranges, percent_array)
         if not os.path.exists(config.get_output_path() +"/P"+ str(level)):
             os.mkdir(config.get_output_path() +"/P"+ str(level))
         o_temp = config.get_output_path() +"/P"+ str(level) + "/Pattern---" + fileName + ".txt"
         f = open(o_temp, "a")
-        f.write(str(pat))
+        f.write(str(pattern))
         f.close()
         
 
