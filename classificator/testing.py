@@ -1,8 +1,14 @@
+import os
 import openpyxl 
-import numpy as np
-from dtw import Dtw
+from classifier import Classifier
 
-
+classifier = Classifier(
+    os.environ.get('PATTERNS_ANGER_FILE'),
+    os.environ.get('PATTERNS_HAPPYNESS_FILE'),
+    os.environ.get('PATTERNS_CALM_FILE'),
+    os.environ.get('PATTERNS_DISGUST_FILE'),
+    os.environ.get('PATTERNS_FEAR_FILE')
+    )
 
 def askii(text):
     ascii_values = []
@@ -10,51 +16,19 @@ def askii(text):
         ascii_values.append(ord(character))
     return ascii_values
 
-def check_min(path, inputPattern):
-    min = 10000
-    f = open(path, 'r')
-    lines = f.read().splitlines()
-    for line in lines:
-        line = askii(line)
-        temp = Dtw(inputPattern, line).getDistance()
-        if temp < min:
-            min = temp
-    f.close
-    return (min)
-
-def find_min_var_name(a, b, c, d, e):
-    smallest = a
-    if b < smallest:
-        smallest = b
-    if c < smallest:
-        smallest = c
-    if d < smallest:
-        smallest = d
-    if e < smallest:
-        smallest = e
-    if smallest == a:
-        return "anger"
-    elif smallest == b:
-        return "happyness"
-    elif smallest == c:
-        return "calm"
-    elif smallest == d:
-        return "disgust"
-    else:
-        return "fear"
 
 def extract_modify_replace(filename):
     i=0
     file_emote = ''
-    if filename == anger_file:
+    if filename == os.environ.get('PATTERNS_ANGER_FILE'):
         file_emote = 'Злость'
-    if filename == happyness_file:
+    if filename == os.environ.get('PATTERNS_HAPPYNESS_FILE'):
         file_emote = 'Счастье'
-    if filename == calm_file:
+    if filename == os.environ.get('PATTERNS_CALM_FILE'):
         file_emote = 'Спокойствие'
-    if filename == disgust_file:
+    if filename == os.environ.get('PATTERNS_DISGUST_FILE'):
         file_emote = 'Отвращение'
-    if filename == fear_file:
+    if filename == os.environ.get('PATTERNS_FEAR_FILE'):
         file_emote = 'Страх'
     
     anger_count = 0
@@ -80,17 +54,17 @@ def extract_modify_replace(filename):
 
         i=i+1
         print(str(i) + "     ===============================")
-        anger = check_min(anger_file, askii(input))
+        anger = classifier.check_min(os.environ.get('PATTERNS_ANGER_FILE'), askii(input))
         print('Злость:' + str(anger))
-        happyness =check_min(happyness_file, askii(input))
+        happyness = classifier.check_min(os.environ.get('PATTERNS_HAPPYNESS_FILE'), askii(input))
         print('Радость:' + str(happyness))
-        calm = check_min(calm_file, askii(input))
+        calm = classifier.check_min(os.environ.get('PATTERNS_CALM_FILE'), askii(input))
         print('Спокойствие:' + str(calm))
-        disgust = check_min(disgust_file, askii(input))
+        disgust = classifier.check_min(os.environ.get('PATTERNS_DISGUST_FILE'), askii(input))
         print('Отвращение:' + str(disgust))
-        fear = check_min(fear_file, askii(input))
+        fear = classifier.check_min(os.environ.get('PATTERNS_FEAR_FILE'), askii(input))
         print('Страх:' + str(fear))
-        classified = find_min_var_name(anger, happyness, calm, disgust, fear)
+        classified = classifier.find_min_var_name(anger, happyness, calm, disgust, fear)
         if classified == 'anger':
             anger_count += 1
         if classified == 'happyness':
@@ -111,24 +85,17 @@ def extract_modify_replace(filename):
     global_count = [file_emote, anger_count, happyness_count, calm_count, disgust_count, fear_count]
     return global_count
 
-
-anger_file = 'C:\\Users\mrwig\OneDrive\Desktop\\EmoDB\P20\\Angry_male.txt'
-happyness_file = 'C:\\Users\mrwig\OneDrive\Desktop\\EmoDB\P20\\Calm_male.txt'
-calm_file = 'C:\\Users\mrwig\OneDrive\Desktop\\EmoDB\P20\\Happy_male.txt'
-disgust_file = 'C:\\Users\mrwig\OneDrive\Desktop\\EmoDB\P20\\Disgust_male.txt'
-fear_file = 'C:\\Users\mrwig\OneDrive\Desktop\\EmoDB\P20\\Fear_male.txt'
-
 # Создаем новый файл Excel
 workbook = openpyxl.Workbook()
 # Выбираем активный лист
 worksheet = workbook.active
 # Задаем значения для матрицы
 matrix = [["Реальная эмоция снизу/справа классифицируемая",'Злость' ,'Счастье' ,'Спокойствие' ,'Отвращение' ,'Страх' ],
-    extract_modify_replace(anger_file),
-    extract_modify_replace(happyness_file),
-    extract_modify_replace(calm_file),
-    extract_modify_replace(disgust_file),
-    extract_modify_replace(fear_file)
+    extract_modify_replace(os.environ.get('PATTERNS_ANGER_FILE')),
+    extract_modify_replace(os.environ.get('PATTERNS_HAPPYNESS_FILE')),
+    extract_modify_replace(os.environ.get('PATTERNS_CALM_FILE')),
+    extract_modify_replace(os.environ.get('PATTERNS_DISGUST_FILE')),
+    extract_modify_replace(os.environ.get('PATTERNS_FEAR_FILE'))
 ]
 print(matrix)
 # Записываем матрицу в ячейки на листе
