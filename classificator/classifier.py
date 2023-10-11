@@ -1,14 +1,16 @@
+import os
 from classificator.dtw import Dtw
 from classificator.testing import askii
 
 
 class Classifier:
-    def __init__(self, anger_path, happyness_path, calm_path, disgust_path, fear_path):
-        self.anger_path = anger_path
-        self.happyness_path = happyness_path
-        self.calm_path = calm_path
-        self.disgust_path = disgust_path
-        self.fear_path = fear_path
+    def __init__(self):
+        self.anger_path = os.environ.get('PATTERNS_ANGER_FILE'),
+        self.happyness_path = os.environ.get('PATTERNS_HAPPYNESS_FILE'),
+        self.calm_path = os.environ.get('PATTERNS_CALM_FILE'),
+        self.disgust_path = os.environ.get('PATTERNS_DISGUST_FILE'),
+        self.fear_path = os.environ.get('PATTERNS_FEAR_FILE')
+
 
     def classify(self):
         anger = self.check_min(self.anger_file, askii(input))

@@ -2,13 +2,7 @@ import os
 import openpyxl 
 from classifier import Classifier
 
-classifier = Classifier(
-    os.environ.get('PATTERNS_ANGER_FILE'),
-    os.environ.get('PATTERNS_HAPPYNESS_FILE'),
-    os.environ.get('PATTERNS_CALM_FILE'),
-    os.environ.get('PATTERNS_DISGUST_FILE'),
-    os.environ.get('PATTERNS_FEAR_FILE')
-    )
+classifier = Classifier()
 
 def askii(text):
     ascii_values = []
