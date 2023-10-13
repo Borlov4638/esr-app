@@ -17,4 +17,4 @@ class Pattern:
             for single_range in ranges:
                 if percent>=single_range[1] and percent<single_range[2]:
                     pattern+=(single_range[0]+' ')
-        return pattern
+        return pattern[:-1]
