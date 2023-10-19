@@ -43,13 +43,11 @@ for file in generalFiles:
     pitch_array += pitch.tolist() #разве можно вставлять частоты файлов просто подряд друг за другом? в таком случае будут и такие группы, куда входят конец одного файла и начало другого и тогда это нарушит картину
 
 
-
 percentage_arr = Percents(config.get_step_pat(), pitch_array).get_percents() #Рассчет массива процентов, где каждый элемент массива - отдельный аудиофайл
 percentage_arr = [file_data_in_perc for file_data_in_perc in percentage_arr if file_data_in_perc >= 0]
 
 percentage_arr.sort()
 
-#TODO Разобраться с массивом - убрать нулевые частоты и подумать над тем, что все частоты всех вайлов записываюстя в один массив
 
 print('Maccив процентов: \t')
 print(percentage_arr)
@@ -59,7 +57,8 @@ for level in range(5,21):
     print(str(level) + '++++++++++++++++++++++++++++++++++++++++++')
     
 
-    #TODO Решить проблему с модулем генерации уровней, а именно с переменной X - идет рассчет слишком большого количества уровней
+    #TODO Решить проблему с модулем генерации уровней, а именно с переменной X - идет рассчет слишком большого количества уровней 
+    # (Проблема проявляется только при малом общем количестве входных аудизаписей в tst)
     ranges = Ranges(percentage_arr).getRanges(level)
 
 
@@ -75,33 +74,3 @@ for level in range(5,21):
         db['patterns'][str(level)].insert_one({"pattern":pattern, "emotion": emote})
         
 
-    #     if not os.path.exists(config.get_output_path() +"/P"+ str(level)):
-    #         os.mkdir(config.get_output_path() +"/P"+ str(level))
-    #     o_temp = config.get_output_path() +"/P"+ str(level) + "/Pattern---" + fileName + ".txt"
-    #     f = open(o_temp, "a")
-    #     f.write(str(pattern))
-    #     f.close()
-        
-
-    # # Эта часть отвечает за то чтобы сгруппировать все получившиеся паттерны с данным значением уровня в один файл
-    
-    # folder_path = config.get_output_path() +"/P"+ str(level)  # указываем путь к папке с файлами
-    # output_file = config.get_output_path() +"/P"+ str(level) + "/Output.txt"  # указываем имя файла, в котором будут записаны данные
-
-    # with open(output_file, "w") as out_file:
-    #     for filename in os.listdir(folder_path):
-    #         if filename.endswith(".txt"):   # Проверяем, что это текстовый файл
-    #             with open(os.path.join(folder_path, filename), "r") as in_file:
-    #                 contents = in_file.read().strip()  # Читаем файл и удаляем начальные и конечные пробелы
-    #                 if contents:  # Проверяем содержимое на отсутствие пустых строк
-    #                     out_file.write(contents + "\n")  # Добавляем содержимое файла в выходной файл
-
-    # with open(output_file, "r+") as out_file:
-    #     out_file.seek(0, os.SEEK_END)  # Перемещаем указатель в конец файла
-    #     pos = out_file.tell() - 1     # Определяем позицию последнего символа
-    #     while pos > 0 and out_file.read(1) != "\n":  # Перемещаемся назад до первого символа конца строки
-    #         pos -= 1
-    #         out_file.seek(pos, os.SEEK_SET)
-    #     if pos > 0:  # Если найден символ конца строки, обрезаем файл
-    #         out_file.seek(pos, os.SEEK_SET)
-    #         out_file.truncate()
