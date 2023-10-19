@@ -42,10 +42,16 @@ for file in generalFiles:
     pitch = PitchDetect(file).getFreqArrayFromFile(config.get_time(), config.get_floor(), config.get_ceiling())
     pitch_array += pitch.tolist() #разве можно вставлять частоты файлов просто подряд друг за другом? в таком случае будут и такие группы, куда входят конец одного файла и начало другого и тогда это нарушит картину
 
+
+
 percentage_arr = Percents(config.get_step_pat(), pitch_array).get_percents() #Рассчет массива процентов, где каждый элемент массива - отдельный аудиофайл
 percentage_arr = [file_data_in_perc for file_data_in_perc in percentage_arr if file_data_in_perc >= 0]
 
 percentage_arr.sort()
+
+#TODO Разобраться с массивом - убрать нулевые частоты и подумать над тем, что все частоты всех вайлов записываюстя в один массив
+
+print('Maccив процентов: \t')
 print(percentage_arr)
 
 for level in range(5,21):
@@ -58,7 +64,7 @@ for level in range(5,21):
 
 
     for file in inputFiles:
-        fileName = os.path.basename(file)                                                                                  #Берет имя waf файла
+        fileName = os.path.basename(file)                                                                                  
         pitch_array = PitchDetect(file).getFreqArrayFromFile(config.get_time(), config.get_floor(), config.get_ceiling())
         pitch_array = pitch_array.tolist()
         percent_array = Percents(config.get_step_pat(), pitch_array).get_percents()

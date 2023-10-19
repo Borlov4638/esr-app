@@ -1,14 +1,9 @@
 import os
+from mongo_init import mongoClient
 
-from pymongo import MongoClient
-from classificator.dtw import Dtw
+from dtw import Dtw
 
-# Provide the mongodb atlas url to connect python to mongodb using pymongo
-CONNECTION_STRING = "mongodb://localhost:27017"
-
-# Create a connection using MongoClient. You can import MongoClient or use pymongo.MongoClient
-client = MongoClient(CONNECTION_STRING)
-
+client = mongoClient()
 
 class Classifier:
     def __init__(self, level):
@@ -18,7 +13,7 @@ class Classifier:
         calm_array = client['patterns'][str(level)].find({'emotion': 'calm'})
         self.calm_patterns = [obj['pattern'] for obj in calm_array]
 
-        happy_array = client['patterns'][str(level)].find({'emotion': 'happy'})
+        happy_array = client['patterns'][str(level)].find({'emotion': 'happyness'})
         self.happy_patterns = [obj['pattern'] for obj in happy_array]
 
         disgust_array = client['patterns'][str(level)].find({'emotion': 'disgust'})
@@ -78,3 +73,4 @@ def askii(text):
     for character in text:
         ascii_values.append(ord(character))
     return ascii_values
+

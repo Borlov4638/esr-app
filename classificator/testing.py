@@ -1,8 +1,11 @@
 import os
-import openpyxl 
+import openpyxl
+from mongo_init import mongoClient
 from classifier import Classifier
 
-classifier = Classifier()
+client = mongoClient()
+
+level = 5
 
 def askii(text):
     ascii_values = []
@@ -11,18 +14,23 @@ def askii(text):
     return ascii_values
 
 
-def extract_modify_replace(filename):
+def extract_modify_replace(emotion):
     i=0
+
+    emotion_pattern_coursor = client['patterns'][str(level)].find({'emotion': emotion})
+    emotion_pattern_array = [obj['pattern'] for obj in emotion_pattern_coursor]
+
+
     file_emote = ''
-    if filename == os.environ.get('PATTERNS_ANGER_FILE'):
+    if emotion == "anger":
         file_emote = 'Злость'
-    if filename == os.environ.get('PATTERNS_HAPPYNESS_FILE'):
+    if emotion == "happyness":
         file_emote = 'Счастье'
-    if filename == os.environ.get('PATTERNS_CALM_FILE'):
+    if emotion == "calm":
         file_emote = 'Спокойствие'
-    if filename == os.environ.get('PATTERNS_DISGUST_FILE'):
+    if emotion == "disgust":
         file_emote = 'Отвращение'
-    if filename == os.environ.get('PATTERNS_FEAR_FILE'):
+    if emotion == "fear":
         file_emote = 'Страх'
     
     anger_count = 0
@@ -31,34 +39,21 @@ def extract_modify_replace(filename):
     disgust_count = 0
     fear_count = 0
 
-    print('*********************************************\n' + filename + "\n*********************************************\n")
-    file_lines = 0
-    with open(filename, 'r') as f1:
-        file_lines += len(f1.readlines())
-    for l in range(file_lines) :
+    print('*********************************************\n' + emotion + "\n*********************************************\n")
+
+    
+    for pattern in range(len(emotion_pattern_array)):
         
+        #Начинается с 0
+        deleted_doc = client['patterns'][str(level)].find_one_and_delete({'emotion': emotion})
+        input = emotion_pattern_array[pattern]
+        print(input)
+        i+=1
 
-        with open(filename, 'r') as f:
-            lines = f.readlines()
-            input = lines[l] # Извлекаем первую строку
-            del lines[l] # Удаляем первую строку из списка
-        with open(filename, 'w') as f:
-            for line in lines:
-                f.write(line) # Перезаписываем остальное содержимое файла
-
-        i=i+1
         print(str(i) + "     ===============================")
-        anger = classifier.check_min(os.environ.get('PATTERNS_ANGER_FILE'), askii(input))
-        print('Злость:' + str(anger))
-        happyness = classifier.check_min(os.environ.get('PATTERNS_HAPPYNESS_FILE'), askii(input))
-        print('Радость:' + str(happyness))
-        calm = classifier.check_min(os.environ.get('PATTERNS_CALM_FILE'), askii(input))
-        print('Спокойствие:' + str(calm))
-        disgust = classifier.check_min(os.environ.get('PATTERNS_DISGUST_FILE'), askii(input))
-        print('Отвращение:' + str(disgust))
-        fear = classifier.check_min(os.environ.get('PATTERNS_FEAR_FILE'), askii(input))
-        print('Страх:' + str(fear))
-        classified = classifier.find_min_var_name(anger, happyness, calm, disgust, fear)
+
+        classified = Classifier(level).classify(input)
+
         if classified == 'anger':
             anger_count += 1
         if classified == 'happyness':
@@ -70,12 +65,13 @@ def extract_modify_replace(filename):
         if classified == 'fear':
             fear_count += 1
 
-        with open(filename, 'r') as f:
-            lines = f.readlines()
-        lines.insert(l, input) # Вставляем новую строку перед указанной строкой
-        with open(filename, 'w') as f:
-            f.writelines(lines) # Перезаписываем содержимое файла с новой строкой
+        client['patterns'][str(level)].insert_one(deleted_doc)
 
+        # with open(filename, 'r') as f:
+        #     lines = f.readlines()
+        # lines.insert(pattern, input) # Вставляем новую строку перед указанной строкой
+        # with open(filename, 'w') as f:
+        #     f.writelines(lines) # Перезаписываем содержимое файла с новой строкой
     global_count = [file_emote, anger_count, happyness_count, calm_count, disgust_count, fear_count]
     return global_count
 
@@ -85,12 +81,13 @@ workbook = openpyxl.Workbook()
 worksheet = workbook.active
 # Задаем значения для матрицы
 matrix = [["Реальная эмоция снизу/справа классифицируемая",'Злость' ,'Счастье' ,'Спокойствие' ,'Отвращение' ,'Страх' ],
-    extract_modify_replace(os.environ.get('PATTERNS_ANGER_FILE')),
-    extract_modify_replace(os.environ.get('PATTERNS_HAPPYNESS_FILE')),
-    extract_modify_replace(os.environ.get('PATTERNS_CALM_FILE')),
-    extract_modify_replace(os.environ.get('PATTERNS_DISGUST_FILE')),
-    extract_modify_replace(os.environ.get('PATTERNS_FEAR_FILE'))
+    extract_modify_replace("anger"),
+    extract_modify_replace("happyness"),
+    extract_modify_replace("calm"),
+    extract_modify_replace("disgust"),
+    extract_modify_replace("fear")
 ]
+client.close()
 print(matrix)
 # Записываем матрицу в ячейки на листе
 for row in matrix:
