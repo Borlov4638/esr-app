@@ -60,7 +60,10 @@ for level in range(5,21):
     #TODO Решить проблему с модулем генерации уровней, а именно с переменной X - идет рассчет слишком большого количества уровней 
     # (Проблема проявляется только при малом общем количестве входных аудизаписей в tst)
     ranges = Ranges(percentage_arr).getRanges(level)
+    db['ranges'][str(level)].insert_one({"level_ranges":ranges})
 
+    db_range_coursor = db['ranges'][str(level)].find()
+    db_range = [obj['level_ranges'] for obj in db_range_coursor][0]
 
     for file in inputFiles:
         fileName = os.path.basename(file)                                                                                  
@@ -68,7 +71,7 @@ for level in range(5,21):
         pitch_array = pitch_array.tolist()
         percent_array = Percents(config.get_step_pat(), pitch_array).get_percents()
         percent_array = [percent for percent in percent_array if percent >= 0]
-        pattern = Pattern(percent_array, level).pattern(ranges, percent_array)
+        pattern = Pattern(percent_array, level).pattern(db_range, percent_array)
 
         emote = file.split('/')[-2:][0]
         db['patterns'][str(level)].insert_one({"pattern":pattern, "emotion": emote})

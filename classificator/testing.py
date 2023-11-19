@@ -1,11 +1,13 @@
 import os
+from dotenv import load_dotenv, find_dotenv
 import openpyxl
 from mongo_init import mongoClient
 from classifier import Classifier
+load_dotenv(find_dotenv())
 
 client = mongoClient()
 
-level = 5
+level = os.environ.get('PATTERN_LEVEL')
 
 def askii(text):
     ascii_values = []
@@ -18,7 +20,9 @@ def extract_modify_replace(emotion):
     i=0
 
     emotion_pattern_coursor = client['patterns'][str(level)].find({'emotion': emotion})
+    print(emotion_pattern_coursor)
     emotion_pattern_array = [obj['pattern'] for obj in emotion_pattern_coursor]
+    print(emotion_pattern_array)
 
 
     file_emote = ''
