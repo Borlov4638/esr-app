@@ -4,6 +4,7 @@ class PitchDetect:
     #Этот класс предназначен для проеобразования аудиофайла в массив частот
     def __init__(self, path):
         self.sound = parselmouth.Sound(path)
+        print(self.sound)
 
     def getFreqArrayFromFile(self, time, floor, ceiling):
         pitch = self.sound.to_pitch(time, floor, ceiling)

@@ -38,13 +38,12 @@ class Classifier:
 
     def check_min(self, patterns_array, inputPattern):
         min = 100000
-        
         for pattern in patterns_array:
             pattern = askii(pattern)
             temp = Dtw(inputPattern, pattern).getDistance()
             if temp < min:
                 min = temp
-        
+
         return (min)
 
     def find_min_var_name(self, a, b, c, d, e):
